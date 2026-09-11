@@ -1,0 +1,10 @@
+# Portable toolchain directories (regenerated, not source)
+/.cargo/
+/.rustup/
+/.nvm/
+
+# Built test binary
+/test/
+
+# OS
+.DS_Store
