@@ -1,4 +1,5 @@
-export type Page = "dashboard" | "courses" | "timer" | "exams" | "calendar";
+import { useTimer } from "../lib/timer";
+export type Page = "dashboard" | "courses" | "timer" | "exams" | "calendar" | "notes";
 
 interface SidebarProps {
   current: Page;
@@ -11,9 +12,23 @@ const navItems: { page: Page; label: string; icon: string }[] = [
   { page: "timer", label: "Study Timer", icon: "⏱" },
   { page: "exams", label: "Exams", icon: "🩺" },
   { page: "calendar", label: "Calendar", icon: "📅" },
+  { page: "notes", label: "Notes", icon: "📝" },
 ];
 
+function formatClock(ms: number): string {
+  const total = Math.max(0, ms);
+  const m = Math.floor(total / 60000)
+    .toString()
+    .padStart(2, "0");
+  const s = Math.floor((total % 60000) / 1000)
+    .toString()
+    .padStart(2, "0");
+  return `${m}:${s}`;
+}
+
 export function Sidebar({ current, onNavigate }: SidebarProps) {
+  const { status, mode, remainingMs } = useTimer();
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -35,6 +50,22 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
           </button>
         ))}
       </nav>
+
+      {status !== "idle" && (
+        <button
+          className={`sidebar-timer ${mode} ${status === "paused" ? "paused" : ""}`}
+          onClick={() => onNavigate("timer")}
+          title="Open Study Timer"
+        >
+          <span className="sidebar-timer-dot" />
+          <span className="sidebar-timer-clock">{formatClock(remainingMs)}</span>
+          <span className="sidebar-timer-label">
+            {mode === "focus" ? "Focus" : "Break"}
+            {status === "paused" ? " (paused)" : ""}
+          </span>
+        </button>
+      )}
+
       <div className="sidebar-footer">v0.1.0</div>
     </aside>
   );

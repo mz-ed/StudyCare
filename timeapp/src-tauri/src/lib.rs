@@ -13,6 +13,12 @@ pub fn run() {
             sql: include_str!("../migrations/0002_calendar.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 3,
+            description: "notes",
+            sql: include_str!("../migrations/0003_notes.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

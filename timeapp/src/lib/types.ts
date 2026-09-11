@@ -61,3 +61,13 @@ export interface CalendarEvent {
   created_at: string;
   updated_at: string;
 }
+
+export interface Note {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  pinned: number;
+  created_at: string;
+  updated_at: string;
+}

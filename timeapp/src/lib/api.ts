@@ -1,5 +1,5 @@
 import { execute, query } from "./db";
-import type { CalendarEvent, Course, Exam, StudySession } from "./types";
+import type { CalendarEvent, Course, Exam, Note, StudySession } from "./types";
 
 export async function fetchCourses(): Promise<Course[]> {
   return query<Course>("SELECT * FROM courses ORDER BY created_at DESC");
@@ -214,4 +214,45 @@ export async function updateCalendarEvent(
 
 export async function deleteCalendarEvent(id: number): Promise<void> {
   await execute("DELETE FROM calendar_events WHERE id = $1", [id]);
+}
+
+export async function fetchNotes(): Promise<Note[]> {
+  return query<Note>(
+    "SELECT * FROM notes ORDER BY pinned DESC, updated_at DESC",
+  );
+}
+
+export async function addNote(): Promise<Note | null> {
+  await execute(
+    "INSERT INTO notes (title, content, updated_at) VALUES ('Untitled', '', CURRENT_TIMESTAMP)",
+  );
+  const rows = await query<Note>(
+    "SELECT * FROM notes ORDER BY id DESC LIMIT 1",
+  );
+  return rows[0] ?? null;
+}
+
+export async function updateNote(
+  id: number,
+  note: {
+    title: string;
+    content: string;
+    category: string;
+    pinned?: boolean;
+  },
+): Promise<void> {
+  await execute(
+    "UPDATE notes SET title = $1, content = $2, category = $3, pinned = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5",
+    [
+      note.title.trim() || "Untitled",
+      note.content,
+      note.category,
+      note.pinned ? 1 : 0,
+      id,
+    ],
+  );
+}
+
+export async function deleteNote(id: number): Promise<void> {
+  await execute("DELETE FROM notes WHERE id = $1", [id]);
 }

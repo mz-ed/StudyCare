@@ -1,0 +1,204 @@
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { addStudySession } from "./api";
+
+export type TimerMode = "focus" | "break";
+type TimerStatus = "idle" | "running" | "paused";
+
+const FOCUS_MS = 25 * 60 * 1000;
+const BREAK_MS = 5 * 60 * 1000;
+
+interface TimerContextValue {
+  courseId: number | "";
+  mode: TimerMode;
+  status: TimerStatus;
+  remainingMs: number;
+  cycles: number;
+  note: string;
+  lastSaved: string | null;
+  setCourseId: (id: number | "") => void;
+  setNote: (note: string) => void;
+  start: () => void;
+  pause: () => void;
+  stop: () => void;
+  reset: () => void;
+  switchMode: (mode: TimerMode) => void;
+}
+
+const TimerContext = createContext<TimerContextValue | undefined>(undefined);
+
+export function TimerProvider({ children }: { children: ReactNode }) {
+  const [courseId, setCourseId] = useState<number | "">("");
+  const [mode, setMode] = useState<TimerMode>("focus");
+  const [status, setStatus] = useState<TimerStatus>("idle");
+  const [remainingMs, setRemainingMs] = useState(FOCUS_MS);
+  const [cycles, setCycles] = useState(0);
+  const [note, setNote] = useState("");
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+
+  const endAtRef = useRef<number | null>(null);
+  const sessionStartRef = useRef<number | null>(null);
+  const modeRef = useRef<TimerMode>("focus");
+  const courseIdRef = useRef<number | "">("");
+  const noteRef = useRef("");
+  const statusRef = useRef<TimerStatus>("idle");
+  const remainingMsRef = useRef(FOCUS_MS);
+
+  modeRef.current = mode;
+  courseIdRef.current = courseId;
+  noteRef.current = note;
+  statusRef.current = status;
+  remainingMsRef.current = remainingMs;
+
+  function playBeep() {
+    try {
+      const audioCtx = new AudioContext();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.8);
+    } catch {
+      /* beep audio not available */
+    }
+  }
+
+  async function saveSession() {
+    const start = sessionStartRef.current;
+    const course = courseIdRef.current;
+    if (!start || !course) return;
+    const end = Date.now();
+    const duration = Math.max(1, Math.round((end - start) / 60000));
+    try {
+      await addStudySession({
+        course_id: course as number,
+        started_at: new Date(start).toISOString(),
+        ended_at: new Date(end).toISOString(),
+        duration_minutes: duration,
+        notes: noteRef.current.trim() || undefined,
+      });
+      setLastSaved(new Date().toLocaleTimeString());
+    } catch (err) {
+      console.error("Failed to save session", err);
+    }
+  }
+
+  function beginPhase(next: TimerMode) {
+    const dur = next === "focus" ? FOCUS_MS : BREAK_MS;
+    setMode(next);
+    setRemainingMs(dur);
+    endAtRef.current = Date.now() + dur;
+    sessionStartRef.current = next === "focus" ? Date.now() : null;
+  }
+
+  function onPhaseComplete() {
+    const wasFocus = modeRef.current === "focus";
+    if (wasFocus) {
+      saveSession();
+      setCycles((c) => c + 1);
+    } else {
+      setCycles(0);
+    }
+    playBeep();
+    beginPhase(wasFocus ? "break" : "focus");
+  }
+
+  useEffect(() => {
+    if (status !== "running") return;
+    const id = window.setInterval(() => {
+      const endAt = endAtRef.current;
+      if (endAt == null) return;
+      const remaining = endAt - Date.now();
+      if (remaining > 0) {
+        setRemainingMs(remaining);
+      } else {
+        onPhaseComplete();
+      }
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [status]);
+
+  function start() {
+    if (!courseIdRef.current) {
+      alert("Select a course first so your session gets tracked.");
+      return;
+    }
+    if (statusRef.current === "paused") {
+      endAtRef.current = Date.now() + Math.max(1000, remainingMsRef.current);
+      setStatus("running");
+      return;
+    }
+    beginPhase(modeRef.current);
+    setStatus("running");
+  }
+
+  function pause() {
+    if (statusRef.current !== "running") return;
+    const endAt = endAtRef.current;
+    if (endAt != null) setRemainingMs(Math.max(0, endAt - Date.now()));
+    setStatus("paused");
+  }
+
+  async function stop() {
+    setStatus("idle");
+    if (modeRef.current === "focus" && sessionStartRef.current && courseIdRef.current) {
+      await saveSession();
+    }
+    endAtRef.current = null;
+    sessionStartRef.current = null;
+    setMode("focus");
+    setRemainingMs(FOCUS_MS);
+  }
+
+  function reset() {
+    setStatus("idle");
+    endAtRef.current = null;
+    sessionStartRef.current = null;
+    setMode("focus");
+    setRemainingMs(FOCUS_MS);
+    setCycles(0);
+  }
+
+  function switchMode(next: TimerMode) {
+    setStatus("idle");
+    endAtRef.current = null;
+    sessionStartRef.current = null;
+    setMode(next);
+    setRemainingMs(next === "focus" ? FOCUS_MS : BREAK_MS);
+  }
+
+  return (
+    <TimerContext.Provider
+      value={{
+        courseId,
+        mode,
+        status,
+        remainingMs,
+        cycles,
+        note,
+        lastSaved,
+        setCourseId,
+        setNote,
+        start,
+        pause,
+        stop,
+        reset,
+        switchMode,
+      }}
+    >
+      {children}
+    </TimerContext.Provider>
+  );
+}
+
+export function useTimer(): TimerContextValue {
+  const ctx = useContext(TimerContext);
+  if (!ctx) {
+    throw new Error("useTimer must be used within a TimerProvider");
+  }
+  return ctx;
+}
