@@ -44,6 +44,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   const endAtRef = useRef<number | null>(null);
   const sessionStartRef = useRef<number | null>(null);
+  const sessionCourseRef = useRef<number>(0);
   const modeRef = useRef<TimerMode>("focus");
   const courseIdRef = useRef<number | "">("");
   const noteRef = useRef("");
@@ -95,7 +96,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   async function saveSession() {
     const start = sessionStartRef.current;
-    const course = courseIdRef.current;
+    const course = sessionCourseRef.current;
     if (!start || !course) return;
     const end = Date.now();
     const duration = Math.max(1, Math.round((end - start) / 60000));
@@ -119,6 +120,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setRemainingMs(dur);
     endAtRef.current = Date.now() + dur;
     sessionStartRef.current = next === "focus" ? Date.now() : null;
+    sessionCourseRef.current = next === "focus" ? (courseIdRef.current as number) : 0;
   }
 
   function onPhaseComplete() {
@@ -171,11 +173,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   async function stop() {
     setStatus("idle");
-    if (modeRef.current === "focus" && sessionStartRef.current && courseIdRef.current) {
+    if (modeRef.current === "focus" && sessionStartRef.current && sessionCourseRef.current) {
       await saveSession();
     }
     endAtRef.current = null;
     sessionStartRef.current = null;
+    sessionCourseRef.current = 0;
     setMode("focus");
     setRemainingMs(focusMsRef.current);
   }
@@ -184,6 +187,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setStatus("idle");
     endAtRef.current = null;
     sessionStartRef.current = null;
+    sessionCourseRef.current = 0;
     setMode("focus");
     setRemainingMs(focusMsRef.current);
     setCycles(0);
@@ -193,6 +197,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setStatus("idle");
     endAtRef.current = null;
     sessionStartRef.current = null;
+    sessionCourseRef.current = 0;
     setMode(next);
     setRemainingMs(next === "focus" ? focusMsRef.current : breakMsRef.current);
   }

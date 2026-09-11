@@ -608,6 +608,13 @@ label {
   margin: 0;
 }
 
+.timer-settings-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  display: block;
+}
+
 .timer-mode-switch {
   display: flex;
   gap: 0.4rem;

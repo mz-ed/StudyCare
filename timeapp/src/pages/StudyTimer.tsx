@@ -61,6 +61,7 @@ export function StudyTimer() {
           <label>Course</label>
           <select
             value={courseId}
+            disabled={locked}
             onChange={(e) =>
               setCourseId(e.target.value ? Number(e.target.value) : "")
             }
@@ -72,6 +73,9 @@ export function StudyTimer() {
               </option>
             ))}
           </select>
+          {locked && (
+            <span className="timer-settings-hint">Locked while timer is active — stop or reset first.</span>
+          )}
         </div>
 
         <div className="timer-mode-switch">
