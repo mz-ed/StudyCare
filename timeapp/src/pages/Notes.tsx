@@ -9,7 +9,11 @@ import type { Note } from "../lib/types";
 
 const NOTE_CATEGORIES = ["general", "study", "exam", "clinical", "personal"];
 
-export function Notes() {
+interface NotesProps {
+  embedded?: boolean;
+}
+
+export function Notes({ embedded = false }: NotesProps) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
@@ -168,14 +172,22 @@ export function Notes() {
   }
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <h2>Notes</h2>
-        <p>Store your study notes and reference material</p>
-        <button className="btn-primary" onClick={handleNew}>
-          + New Note
-        </button>
-      </header>
+    <div className={embedded ? "notes-view" : "page"}>
+      {embedded ? (
+        <div className="notes-embedded-bar">
+          <button className="btn-primary btn-small" onClick={handleNew}>
+            + New Note
+          </button>
+        </div>
+      ) : (
+        <header className="page-header">
+          <h2>Notes</h2>
+          <p>Store your study notes and reference material</p>
+          <button className="btn-primary" onClick={handleNew}>
+            + New Note
+          </button>
+        </header>
+      )}
 
       <div className="notes-layout">
         <section className="panel notes-list-panel">

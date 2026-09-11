@@ -12,7 +12,7 @@ const navItems: { page: Page; label: string; icon: string }[] = [
   { page: "timer", label: "Study Timer", icon: "⏱" },
   { page: "exams", label: "Exams", icon: "🩺" },
   { page: "calendar", label: "Calendar", icon: "📅" },
-  { page: "notes", label: "Notes", icon: "📝" },
+  { page: "notes", label: "Study Center", icon: "📘" },
 ];
 
 function formatClock(ms: number): string {

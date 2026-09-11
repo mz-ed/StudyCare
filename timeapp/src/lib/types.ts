@@ -71,3 +71,19 @@ export interface Note {
   created_at: string;
   updated_at: string;
 }
+
+export interface Pdf {
+  id: number;
+  file_name: string;
+  file_path: string;
+  page_count: number | null;
+  added_at: string;
+  last_opened: string | null;
+}
+
+export interface PdfNote {
+  id: number;
+  pdf_id: number;
+  content: string;
+  updated_at: string;
+}

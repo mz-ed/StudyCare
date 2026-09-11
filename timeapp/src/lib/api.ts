@@ -1,5 +1,5 @@
 import { execute, query } from "./db";
-import type { CalendarEvent, Course, Exam, Note, StudySession } from "./types";
+import type { CalendarEvent, Course, Exam, Note, Pdf, PdfNote, StudySession } from "./types";
 
 export async function fetchCourses(): Promise<Course[]> {
   return query<Course>("SELECT * FROM courses ORDER BY created_at DESC");
@@ -255,4 +255,53 @@ export async function updateNote(
 
 export async function deleteNote(id: number): Promise<void> {
   await execute("DELETE FROM notes WHERE id = $1", [id]);
+}
+
+export async function fetchPdfs(): Promise<Pdf[]> {
+  return query<Pdf>("SELECT * FROM pdfs ORDER BY last_opened DESC, added_at DESC");
+}
+
+export async function addPdf(
+  file_name: string,
+  file_path: string,
+): Promise<Pdf | null> {
+  await execute(
+    "INSERT INTO pdfs (file_name, file_path) VALUES ($1, $2)",
+    [file_name, file_path],
+  );
+  const rows = await query<Pdf>("SELECT * FROM pdfs ORDER BY id DESC LIMIT 1");
+  return rows[0] ?? null;
+}
+
+export async function updatePdfMeta(
+  id: number,
+  pageCount: number,
+): Promise<void> {
+  await execute(
+    "UPDATE pdfs SET page_count = $1, last_opened = CURRENT_TIMESTAMP WHERE id = $2",
+    [pageCount, id],
+  );
+}
+
+export async function deletePdf(id: number): Promise<void> {
+  await execute("DELETE FROM pdf_notes WHERE pdf_id = $1", [id]);
+  await execute("DELETE FROM pdfs WHERE id = $1", [id]);
+}
+
+export async function fetchPdfNote(pdfId: number): Promise<PdfNote | null> {
+  const rows = await query<PdfNote>(
+    "SELECT * FROM pdf_notes WHERE pdf_id = $1 LIMIT 1",
+    [pdfId],
+  );
+  return rows[0] ?? null;
+}
+
+export async function upsertPdfNote(
+  pdfId: number,
+  content: string,
+): Promise<void> {
+  await execute(
+    "INSERT INTO pdf_notes (pdf_id, content, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP) ON CONFLICT(pdf_id) DO UPDATE SET content = excluded.content, updated_at = CURRENT_TIMESTAMP",
+    [pdfId, content],
+  );
 }

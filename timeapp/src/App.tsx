@@ -5,7 +5,7 @@ import { Courses } from "./pages/Courses";
 import { StudyTimer } from "./pages/StudyTimer";
 import { Exams } from "./pages/Exams";
 import { Calendar } from "./pages/Calendar";
-import { Notes } from "./pages/Notes";
+import { StudyCenter } from "./pages/StudyCenter";
 import { dbInit } from "./lib/db";
 import "./App.css";
 
@@ -36,7 +36,7 @@ function App() {
       case "calendar":
         return <Calendar />;
       case "notes":
-        return <Notes />;
+        return <StudyCenter />;
     }
   }
 

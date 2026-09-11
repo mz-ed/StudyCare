@@ -1135,3 +1135,361 @@ label {
     border-color: #335065;
   }
 }
+
+/* ---------- Study Center Tabs ---------- */
+.study-tabs {
+  display: flex;
+  gap: 0.35rem;
+  background: #edf2f6;
+  border-radius: 10px;
+  padding: 0.25rem;
+  margin-bottom: 1.1rem;
+}
+
+.study-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.study-tab.active {
+  background: #fff;
+  color: var(--primary-dark);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.page-wide {
+  max-width: none;
+}
+
+.notes-embedded-bar {
+  margin-bottom: 0.9rem;
+}
+
+/* ---------- PDF Library ---------- */
+.pdf-library-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.9rem;
+}
+
+.pdf-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  background: #fbfdfe;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pdf-card:hover {
+  border-color: var(--primary-light);
+}
+
+.pdf-card-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+}
+
+.pdf-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pdf-card-info h3 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-card-info p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.pdf-card-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+/* ---------- PDF Reader ---------- */
+.pdf-reader {
+  margin: -1.5rem -2rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 40px);
+}
+
+.pdf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.pdf-file-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.pdf-toolbar-spacer {
+  flex: 1;
+}
+
+.pdf-pager {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.pdf-page-input {
+  width: 38px;
+  text-align: center;
+  padding: 0.25rem 0.2rem;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdf-page-total {
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.pdf-zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: #edf2f6;
+  color: var(--text);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.zoom-label {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 46px;
+  text-align: center;
+}
+
+.zoom-label:hover {
+  background: #edf2f6;
+  color: var(--text);
+}
+
+.pdf-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.pdf-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background: #5c6773;
+}
+
+.pdf-scroll canvas {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  border-radius: 2px;
+}
+
+.pdf-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f4f6f8;
+  z-index: 20;
+  gap: 0.7rem;
+  color: var(--text-muted);
+}
+
+.pdf-overlay.subtle {
+  background: rgba(244, 246, 248, 0.85);
+  pointer-events: none;
+}
+
+/* ---------- PDF Notes Panel ---------- */
+.pdf-notes-panel {
+  width: 340px;
+  min-width: 340px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  animation: pdfNotesSlideIn 0.15s ease-out;
+}
+
+@keyframes pdfNotesSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.pdf-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.pdf-notes-header h3 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin: 0;
+}
+
+.pdf-notes-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0.6rem 1rem 0;
+}
+
+.pdf-notes-textarea {
+  flex: 1;
+  border: none;
+  padding: 0.8rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  line-height: 1.6;
+  color: var(--text);
+  background: transparent;
+  resize: none;
+  outline: none;
+}
+
+.pdf-notes-status {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  min-height: 1.6rem;
+}
+
+.pdf-notes-status-muted {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* ---------- Dark mode additions ---------- */
+@media (prefers-color-scheme: dark) {
+  .study-tabs {
+    background: #182833;
+  }
+
+  .study-tab.active {
+    background: #22394a;
+    color: #eaf4fb;
+  }
+
+  .pdf-card {
+    background: #1a2a37;
+  }
+
+  .pdf-toolbar {
+    background: var(--panel);
+    border-bottom-color: #2e4252;
+  }
+
+  .pdf-scroll {
+    background: #283340;
+  }
+
+  .pdf-overlay {
+    background: #17222c;
+  }
+
+  .pdf-overlay.subtle {
+    background: rgba(23, 34, 44, 0.85);
+  }
+
+  .icon-btn:hover:not(:disabled) {
+    background: #2a3e4e;
+  }
+
+  .zoom-label:hover {
+    background: #2a3e4e;
+  }
+
+  .pdf-notes-panel {
+    background: var(--panel);
+    border-left-color: #2e4252;
+  }
+
+  .pdf-notes-textarea {
+    color: var(--text);
+  }
+}
