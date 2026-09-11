@@ -5,9 +5,6 @@ import { addStudySession } from "./api";
 export type TimerMode = "focus" | "break";
 type TimerStatus = "idle" | "running" | "paused";
 
-const FOCUS_MS = 25 * 60 * 1000;
-const BREAK_MS = 5 * 60 * 1000;
-
 interface TimerContextValue {
   courseId: number | "";
   mode: TimerMode;
@@ -16,8 +13,12 @@ interface TimerContextValue {
   cycles: number;
   note: string;
   lastSaved: string | null;
+  focusMinutes: number;
+  breakMinutes: number;
   setCourseId: (id: number | "") => void;
   setNote: (note: string) => void;
+  setFocusMinutes: (min: number) => void;
+  setBreakMinutes: (min: number) => void;
   start: () => void;
   pause: () => void;
   stop: () => void;
@@ -31,10 +32,15 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [courseId, setCourseId] = useState<number | "">("");
   const [mode, setMode] = useState<TimerMode>("focus");
   const [status, setStatus] = useState<TimerStatus>("idle");
-  const [remainingMs, setRemainingMs] = useState(FOCUS_MS);
+  const [focusMinutes, setFocusMinutesState] = useState(25);
+  const [breakMinutes, setBreakMinutesState] = useState(5);
+  const [remainingMs, setRemainingMs] = useState(25 * 60 * 1000);
   const [cycles, setCycles] = useState(0);
   const [note, setNote] = useState("");
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+
+  const focusMs = focusMinutes * 60 * 1000;
+  const breakMs = breakMinutes * 60 * 1000;
 
   const endAtRef = useRef<number | null>(null);
   const sessionStartRef = useRef<number | null>(null);
@@ -42,13 +48,33 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const courseIdRef = useRef<number | "">("");
   const noteRef = useRef("");
   const statusRef = useRef<TimerStatus>("idle");
-  const remainingMsRef = useRef(FOCUS_MS);
+  const remainingMsRef = useRef(25 * 60 * 1000);
+  const focusMsRef = useRef(25 * 60 * 1000);
+  const breakMsRef = useRef(5 * 60 * 1000);
 
   modeRef.current = mode;
   courseIdRef.current = courseId;
   noteRef.current = note;
   statusRef.current = status;
   remainingMsRef.current = remainingMs;
+  focusMsRef.current = focusMs;
+  breakMsRef.current = breakMs;
+
+  function setFocusMinutes(min: number) {
+    const clamped = Math.max(1, Math.min(120, Math.round(min)));
+    setFocusMinutesState(clamped);
+    if (status === "idle" && mode === "focus") {
+      setRemainingMs(clamped * 60 * 1000);
+    }
+  }
+
+  function setBreakMinutes(min: number) {
+    const clamped = Math.max(1, Math.min(60, Math.round(min)));
+    setBreakMinutesState(clamped);
+    if (status === "idle" && mode === "break") {
+      setRemainingMs(clamped * 60 * 1000);
+    }
+  }
 
   function playBeep() {
     try {
@@ -88,7 +114,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }
 
   function beginPhase(next: TimerMode) {
-    const dur = next === "focus" ? FOCUS_MS : BREAK_MS;
+    const dur = next === "focus" ? focusMsRef.current : breakMsRef.current;
     setMode(next);
     setRemainingMs(dur);
     endAtRef.current = Date.now() + dur;
@@ -151,7 +177,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     endAtRef.current = null;
     sessionStartRef.current = null;
     setMode("focus");
-    setRemainingMs(FOCUS_MS);
+    setRemainingMs(focusMsRef.current);
   }
 
   function reset() {
@@ -159,7 +185,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     endAtRef.current = null;
     sessionStartRef.current = null;
     setMode("focus");
-    setRemainingMs(FOCUS_MS);
+    setRemainingMs(focusMsRef.current);
     setCycles(0);
   }
 
@@ -168,7 +194,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     endAtRef.current = null;
     sessionStartRef.current = null;
     setMode(next);
-    setRemainingMs(next === "focus" ? FOCUS_MS : BREAK_MS);
+    setRemainingMs(next === "focus" ? focusMsRef.current : breakMsRef.current);
   }
 
   return (
@@ -181,8 +207,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         cycles,
         note,
         lastSaved,
+        focusMinutes,
+        breakMinutes,
         setCourseId,
         setNote,
+        setFocusMinutes,
+        setBreakMinutes,
         start,
         pause,
         stop,

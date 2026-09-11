@@ -13,8 +13,12 @@ export function StudyTimer() {
     cycles,
     note,
     lastSaved,
+    focusMinutes,
+    breakMinutes,
     setCourseId,
     setNote,
+    setFocusMinutes,
+    setBreakMinutes,
     start,
     pause,
     stop,
@@ -27,7 +31,11 @@ export function StudyTimer() {
   }, []);
 
   const running = status === "running";
-  const total = mode === "focus" ? 25 * 60 * 1000 : 5 * 60 * 1000;
+  const locked = status !== "idle";
+  const total =
+    mode === "focus"
+      ? focusMinutes * 60 * 1000
+      : breakMinutes * 60 * 1000;
   const minutes = Math.floor(remainingMs / 60000)
     .toString()
     .padStart(2, "0");
@@ -71,15 +79,45 @@ export function StudyTimer() {
             className={mode === "focus" ? "mode-btn active" : "mode-btn"}
             onClick={() => switchMode("focus")}
           >
-            Focus (25m)
+            Focus ({focusMinutes}m)
           </button>
           <button
             className={mode === "break" ? "mode-btn active" : "mode-btn"}
             onClick={() => switchMode("break")}
           >
-            Break (5m)
+            Break ({breakMinutes}m)
           </button>
         </div>
+
+        <div className="timer-settings">
+          <label>
+            Focus duration (min)
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={focusMinutes}
+              disabled={locked}
+              onChange={(e) => setFocusMinutes(Number(e.target.value))}
+            />
+          </label>
+          <label>
+            Break duration (min)
+            <input
+              type="number"
+              min={1}
+              max={60}
+              value={breakMinutes}
+              disabled={locked}
+              onChange={(e) => setBreakMinutes(Number(e.target.value))}
+            />
+          </label>
+        </div>
+        {locked && (
+          <p className="timer-settings-locked">
+            ⏸ Press Stop or Reset to change the durations.
+          </p>
+        )}
 
         <div
           className="timer-ring"
