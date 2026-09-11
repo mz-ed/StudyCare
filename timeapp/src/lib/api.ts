@@ -96,12 +96,11 @@ export async function addExam(exam: {
   course_id: number;
   title: string;
   exam_date: string;
-  weight: number;
   status: string;
 }): Promise<void> {
   await execute(
-    "INSERT INTO exams (course_id, title, exam_date, weight, status) VALUES ($1, $2, $3, $4, $5)",
-    [exam.course_id, exam.title, exam.exam_date, exam.weight, exam.status],
+    "INSERT INTO exams (course_id, title, exam_date, status) VALUES ($1, $2, $3, $4)",
+    [exam.course_id, exam.title, exam.exam_date, exam.status],
   );
 }
 
@@ -169,6 +168,89 @@ export async function getRecentSessions(limit = 5): Promise<Array<
      LIMIT $1`,
     [limit],
   );
+}
+
+export interface DayMinutes {
+  day: string;
+  minutes: number;
+}
+
+export interface CourseMinutes {
+  course_id: number;
+  course_name: string;
+  minutes: number;
+}
+
+export interface ExamStatusCount {
+  status: string;
+  count: number;
+}
+
+export function localDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+export function lastNDates(n: number): string[] {
+  const out: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    out.push(localDateStr(new Date(Date.now() - i * 86400000)));
+  }
+  return out;
+}
+
+export async function getDailyMinutes(fromDate?: string): Promise<DayMinutes[]> {
+  if (fromDate) {
+    return query<DayMinutes>(
+      `SELECT date(created_at) as day,
+              COALESCE(SUM(duration_minutes), 0) as minutes
+       FROM study_sessions
+       WHERE date(created_at) >= $1
+       GROUP BY day ORDER BY day`,
+      [fromDate],
+    );
+  }
+  return query<DayMinutes>(
+    `SELECT date(created_at) as day,
+            COALESCE(SUM(duration_minutes), 0) as minutes
+     FROM study_sessions
+     GROUP BY day ORDER BY day`,
+  );
+}
+
+export async function getMinutesByCourse(): Promise<CourseMinutes[]> {
+  return query<CourseMinutes>(
+    `SELECT c.id as course_id,
+            c.name as course_name,
+            COALESCE(SUM(ss.duration_minutes), 0) as minutes
+     FROM courses c
+     LEFT JOIN study_sessions ss ON ss.course_id = c.id
+     GROUP BY c.id ORDER BY minutes DESC`,
+  );
+}
+
+export async function getExamStatusCounts(): Promise<ExamStatusCount[]> {
+  return query<ExamStatusCount>(
+    "SELECT status, COUNT(*) as count FROM exams GROUP BY status",
+  );
+}
+
+export async function getStudyActivity(): Promise<{
+  sessions: number;
+  activeDays: number;
+}> {
+  const s = await query<{ sessions: number }>(
+    "SELECT COUNT(*) as sessions FROM study_sessions",
+  );
+  const d = await query<{ days: number }>(
+    "SELECT COUNT(DISTINCT date(created_at)) as days FROM study_sessions",
+  );
+  return {
+    sessions: s[0]?.sessions ?? 0,
+    activeDays: d[0]?.days ?? 0,
+  };
 }
 
 export async function fetchEventsForMonth(

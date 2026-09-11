@@ -186,7 +186,6 @@ export function Calendar() {
   return (
     <div className="page">
       <header className="page-header">
-        <h2>Calendar</h2>
         <p>Pick a day and add your study plans, exams, and notes</p>
       </header>
 

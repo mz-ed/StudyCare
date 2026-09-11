@@ -25,7 +25,6 @@ export interface Exam {
   course_id: number;
   title: string;
   exam_date: string;
-  weight: number;
   score?: number | null;
   status: "upcoming" | "passed" | "failed";
   notes?: string | null;

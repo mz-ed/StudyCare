@@ -95,7 +95,6 @@ export function Courses() {
   return (
     <div className="page">
       <header className="page-header">
-        <h2>Courses</h2>
         <p>Manage your medical study courses</p>
         <button
           className="btn-primary"

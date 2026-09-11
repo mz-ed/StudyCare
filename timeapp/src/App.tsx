@@ -6,13 +6,28 @@ import { StudyTimer } from "./pages/StudyTimer";
 import { Exams } from "./pages/Exams";
 import { Calendar } from "./pages/Calendar";
 import { StudyCenter } from "./pages/StudyCenter";
+import { AiChat } from "./pages/AiChat";
 import { dbInit } from "./lib/db";
+import { initTheme, useTheme } from "./lib/theme";
 import "./App.css";
+
+initTheme();
+
+const PAGE_META: Record<Page, { label: string; icon: string }> = {
+  dashboard: { label: "Dashboard", icon: "🏛" },
+  courses: { label: "Courses", icon: "📚" },
+  timer: { label: "Study Timer", icon: "⏱" },
+  exams: { label: "Exams", icon: "🩺" },
+  calendar: { label: "Calendar", icon: "📅" },
+  notes: { label: "Study Center", icon: "📘" },
+  ai: { label: "AI Chat", icon: "🤖" },
+};
 
 function App() {
   const [page, setPage] = useState<Page>("dashboard");
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
+  const { theme, toggle } = useTheme();
 
   useEffect(() => {
     dbInit()
@@ -37,6 +52,8 @@ function App() {
         return <Calendar />;
       case "notes":
         return <StudyCenter />;
+      case "ai":
+        return <AiChat />;
     }
   }
 
@@ -44,11 +61,31 @@ function App() {
     <div className="app-shell">
       <Sidebar current={page} onNavigate={setPage} />
       <main className="content">
-        {!ready && !error && (
-          <div className="centered-message">Loading app...</div>
-        )}
-        {error && <div className="centered-message error-text">{error}</div>}
-        {ready && renderPage()}
+        <header className="topbar">
+          <div className="topbar-title">
+            <span className="topbar-icon">{PAGE_META[page].icon}</span>
+            <span>{PAGE_META[page].label}</span>
+          </div>
+          <button
+            className="theme-toggle topbar-theme"
+            onClick={toggle}
+            title="Toggle dark mode"
+          >
+            <span className="theme-toggle-icon">
+              {theme === "dark" ? "☀️" : "🌙"}
+            </span>
+            <span className="theme-toggle-label">
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </span>
+          </button>
+        </header>
+        <div className="page-scroll">
+          {!ready && !error && (
+            <div className="centered-message">Loading app...</div>
+          )}
+          {error && <div className="centered-message error-text">{error}</div>}
+          {ready && renderPage()}
+        </div>
       </main>
     </div>
   );

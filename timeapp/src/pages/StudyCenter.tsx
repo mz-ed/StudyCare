@@ -13,7 +13,6 @@ export function StudyCenter() {
   return (
     <div className={`page ${tab === "pdfs" ? "page-wide" : ""}`}>
       <header className="page-header">
-        <h2>Study Center</h2>
         <p>Your notes and PDF study material in one place</p>
       </header>
       <div className="study-tabs">

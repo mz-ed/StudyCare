@@ -12,7 +12,6 @@ const EMPTY_FORM = {
   course_id: "",
   title: "",
   exam_date: "",
-  weight: "",
   status: "upcoming",
 };
 
@@ -52,7 +51,6 @@ export function Exams() {
         course_id: Number(form.course_id),
         title: form.title.trim(),
         exam_date: form.exam_date,
-        weight: parseFloat(form.weight) || 0,
         status: "upcoming",
       });
       await load();
@@ -63,12 +61,20 @@ export function Exams() {
     }
   }
 
-  async function markComplete(exam: Exam, score: number) {
+  async function saveScore(exam: Exam, score: number) {
+    if (Number.isNaN(score) || score < 0 || score > 100) return;
     try {
-      await updateExam(exam.id, { score, status: score >= 50 ? "passed" : "failed" });
+      if (exam.status === "upcoming") {
+        await updateExam(exam.id, {
+          score,
+          status: score >= 50 ? "passed" : "failed",
+        });
+      } else {
+        await updateExam(exam.id, { score });
+      }
       await load();
     } catch (err) {
-      console.error("Failed to update exam", err);
+      console.error("Failed to save score", err);
     }
   }
 
@@ -95,7 +101,6 @@ export function Exams() {
   return (
     <div className="page">
       <header className="page-header">
-        <h2>Exams</h2>
         <p>Track your upcoming exams and assessments</p>
         <button
           className="btn-primary"
@@ -138,17 +143,6 @@ export function Exams() {
               onChange={(e) => setForm({ ...form, exam_date: e.target.value })}
             />
           </label>
-          <label>
-            Weight (%)
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={form.weight}
-              onChange={(e) => setForm({ ...form, weight: e.target.value })}
-              placeholder="e.g. 30"
-            />
-          </label>
           {error && <p className="error-text">{error}</p>}
           <div className="form-actions">
             <button type="submit" className="btn-primary">
@@ -181,7 +175,6 @@ export function Exams() {
                 <th>Course</th>
                 <th>Date</th>
                 <th>Countdown</th>
-                <th>Weight</th>
                 <th>Score</th>
                 <th>Status</th>
                 <th></th>
@@ -202,31 +195,40 @@ export function Exams() {
                       "-"
                     )}
                   </td>
-                  <td>{ex.weight}%</td>
                   <td>
-                    {ex.score != null ? (
-                      `${ex.score}%`
-                    ) : ex.status === "upcoming" ? (
+                    <div className="score-cell">
                       <input
+                        key={`${ex.id}-${ex.status}`}
                         type="number"
                         min="0"
                         max="100"
-                        placeholder="Score"
+                        placeholder="—"
                         className="score-input"
+                        defaultValue={ex.score ?? ""}
+                        title="Enter your score and press Enter or ✓"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            markComplete(
+                            (e.target as HTMLInputElement).blur();
+                            saveScore(
                               ex,
-                              parseFloat(
-                                (e.target as HTMLInputElement).value,
-                              ) || 0,
+                              parseFloat((e.target as HTMLInputElement).value),
                             );
                           }
                         }}
                       />
-                    ) : (
-                      "-"
-                    )}
+                      <button
+                        type="button"
+                        className="btn-secondary btn-small score-save"
+                        title="Save score"
+                        onClick={(e) => {
+                          const input = e.currentTarget
+                            .previousElementSibling as HTMLInputElement;
+                          saveScore(ex, parseFloat(input.value));
+                        }}
+                      >
+                        ✓
+                      </button>
+                    </div>
                   </td>
                   <td>
                     <span className={`badge badge-${ex.status}`}>

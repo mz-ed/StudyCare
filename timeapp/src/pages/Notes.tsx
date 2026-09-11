@@ -181,7 +181,6 @@ export function Notes({ embedded = false }: NotesProps) {
         </div>
       ) : (
         <header className="page-header">
-          <h2>Notes</h2>
           <p>Store your study notes and reference material</p>
           <button className="btn-primary" onClick={handleNew}>
             + New Note

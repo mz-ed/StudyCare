@@ -1,5 +1,6 @@
 import { useTimer } from "../lib/timer";
-export type Page = "dashboard" | "courses" | "timer" | "exams" | "calendar" | "notes";
+import { useTheme } from "../lib/theme";
+export type Page = "dashboard" | "courses" | "timer" | "exams" | "calendar" | "notes" | "ai";
 
 interface SidebarProps {
   current: Page;
@@ -13,6 +14,7 @@ const navItems: { page: Page; label: string; icon: string }[] = [
   { page: "exams", label: "Exams", icon: "🩺" },
   { page: "calendar", label: "Calendar", icon: "📅" },
   { page: "notes", label: "Study Center", icon: "📘" },
+  { page: "ai", label: "AI Chat", icon: "🤖" },
 ];
 
 function formatClock(ms: number): string {
@@ -28,6 +30,7 @@ function formatClock(ms: number): string {
 
 export function Sidebar({ current, onNavigate }: SidebarProps) {
   const { status, mode, remainingMs } = useTimer();
+  const { theme, toggle } = useTheme();
 
   return (
     <aside className="sidebar">
@@ -65,6 +68,11 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
           </span>
         </button>
       )}
+
+      <button className="theme-toggle" onClick={toggle} title="Toggle dark mode">
+        <span className="theme-toggle-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
+        <span className="theme-toggle-label">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+      </button>
 
       <div className="sidebar-footer">v0.1.0</div>
     </aside>

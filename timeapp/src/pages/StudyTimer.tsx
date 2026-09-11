@@ -47,7 +47,6 @@ export function StudyTimer() {
   return (
     <div className="page">
       <header className="page-header">
-        <h2>Study Timer</h2>
         <p>Pomodoro-style focus sessions for your courses</p>
       </header>
 
