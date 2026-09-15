@@ -70,6 +70,17 @@ body {
   height: 100vh;
 }
 
+.app-shell.sidebar-collapsed .sidebar {
+  display: none;
+}
+
+[data-focus] .sidebar,
+[data-focus] .topbar,
+[data-focus] .page-header,
+[data-focus] .study-tabs {
+  display: none;
+}
+
 /* ---------- Sidebar ---------- */
 .sidebar {
   width: 230px;
@@ -269,6 +280,32 @@ body {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.topbar-nav-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--primary-dark);
+  font-size: 0.95rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+
+.topbar-nav-toggle:hover {
+  background: var(--action-solid);
+  color: var(--action-text);
+  border-color: transparent;
 }
 
 .topbar-title {
@@ -1420,6 +1457,14 @@ label {
   height: calc(100vh - 112px);
 }
 
+[data-focus] .pdf-reader {
+  height: 100vh;
+}
+
+.app-shell.pdf-focus .pdf-reader {
+  height: 100vh;
+}
+
 .pdf-toolbar {
   display: flex;
   align-items: center;
@@ -1470,6 +1515,18 @@ label {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.pdf-zoom-slider {
+  width: 110px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.pdf-zoom-slider:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(242, 136, 47, 0.16);
+  border-radius: 6px;
 }
 
 .icon-btn {

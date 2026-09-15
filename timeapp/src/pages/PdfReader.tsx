@@ -17,6 +17,7 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
   const noteDirtyRef = useRef(false);
   const pageInputFocusRef = useRef(false);
   const pageInputRef = useRef("1");
+  const renderTimerRef = useRef(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,11 +25,32 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
-  const [zoomLevel, setZoomLevel] = useState("");
+  const [zoomPercent, setZoomPercent] = useState(100);
   const [notesOpen, setNotesOpen] = useState(true);
   const [noteText, setNoteText] = useState<string | null>(null);
   const [noteSaving, setNoteSaving] = useState(false);
   const [noteSaved, setNoteSaved] = useState(false);
+  const [focus, setFocus] = useState(false);
+
+  useEffect(
+    () => () => {
+      delete document.documentElement.dataset.focus;
+    },
+    [],
+  );
+
+  function toggleFocus() {
+    setFocus((f) => {
+      const next = !f;
+      if (next) {
+        document.documentElement.dataset.focus = "1";
+        setNotesOpen(false);
+      } else {
+        delete document.documentElement.dataset.focus;
+      }
+      return next;
+    });
+  }
 
   async function renderAll(scale: number) {
     const doc = docRef.current;
@@ -68,7 +90,7 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
         const fit = Math.max(0.2, Math.min(2.5, avail / baseW));
         fitScaleRef.current = fit;
         scaleRef.current = fit;
-        setZoomLevel(`${Math.round(fit * 100)}%`);
+        setZoomPercent(Math.round(fit * 100));
         await updatePdfMeta(pdf.id, doc.numPages);
         const note = await fetchPdfNote(pdf.id);
         if (cancelled) return;
@@ -125,19 +147,30 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
     if (!Number.isNaN(n)) gotoPage(n);
   }
 
-  function applyScale(scale: number) {
-    const next = Math.round(Math.max(0.25, Math.min(3, scale)) * 100) / 100;
+  function applyScaleImmediate(scale: number) {
+    const next = Math.round(Math.max(25, Math.min(300, scale * 100))) / 100;
     scaleRef.current = next;
-    setZoomLevel(`${Math.round(next * 100)}%`);
+    setZoomPercent(Math.round(next * 100));
+    window.clearTimeout(renderTimerRef.current);
     void renderAll(next);
   }
 
-  function zoomBy(delta: number) {
-    applyScale(scaleRef.current + delta);
+  function applyScaleDebounced(scale: number) {
+    const next = Math.round(Math.max(25, Math.min(300, scale * 100))) / 100;
+    scaleRef.current = next;
+    setZoomPercent(Math.round(next * 100));
+    window.clearTimeout(renderTimerRef.current);
+    renderTimerRef.current = window.setTimeout(() => {
+      void renderAll(next);
+    }, 150);
+  }
+
+  function zoomBy(deltaPct: number) {
+    applyScaleImmediate((scaleRef.current * 100 + deltaPct) / 100);
   }
 
   function zoomToFit() {
-    applyScale(fitScaleRef.current);
+    applyScaleImmediate(fitScaleRef.current);
   }
 
   const flushNote = useCallback(async () => {
@@ -172,13 +205,26 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
   return (
     <section className="pdf-reader">
       <div className="pdf-toolbar">
-        <button className="btn-secondary btn-small" onClick={() => flushNote().then(onBack)}>
+        <button
+          className="btn-secondary btn-small"
+          onClick={() => {
+            delete document.documentElement.dataset.focus;
+            void flushNote().then(onBack);
+          }}
+        >
           ← Library
         </button>
         <span className="pdf-file-name" title={pdf.file_path}>
           {pdf.file_name}
         </span>
         <div className="pdf-toolbar-spacer" />
+        <button
+          className={`btn-secondary btn-small${focus ? " active" : ""}`}
+          onClick={toggleFocus}
+          title={focus ? "Exit focus mode (expand app)" : "Focus: expand PDF to fill screen"}
+        >
+          {focus ? "✕ Exit Focus" : "⛶ Expand"}
+        </button>
         <div className="pdf-pager">
           <button
             className="icon-btn"
@@ -212,18 +258,30 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
           </button>
         </div>
         <div className="pdf-zoom">
-          <button className="icon-btn" onClick={() => zoomBy(-0.15)} title="Zoom out">
+          <button className="icon-btn" onClick={() => zoomBy(-15)} title="Zoom out">
             −
           </button>
+          <input
+            type="range"
+            className="pdf-zoom-slider"
+            min={25}
+            max={300}
+            step={5}
+            value={zoomPercent}
+            onChange={(e) =>
+              applyScaleDebounced(Number((e.target as HTMLInputElement).value) / 100)
+            }
+            title="Drag to adjust zoom"
+          />
           <button className="zoom-label" onClick={zoomToFit} title="Fit width">
-            {zoomLevel}
+            {zoomPercent}%
           </button>
-          <button className="icon-btn" onClick={() => zoomBy(0.15)} title="Zoom in">
+          <button className="icon-btn" onClick={() => zoomBy(15)} title="Zoom in">
             +
           </button>
         </div>
         <button
-          className={`btn-secondary btn-small ${notesOpen ? "active" : ""}`}
+          className={`btn-secondary btn-small${notesOpen ? " active" : ""}`}
           onClick={() => setNotesOpen((o) => !o)}
         >
           {notesOpen ? "Hide Notes" : "Notes"}
@@ -240,7 +298,13 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
         {error && (
           <div className="pdf-overlay">
             <p className="error-text">{error}</p>
-            <button className="btn-secondary btn-small" onClick={onBack}>
+            <button
+              className="btn-secondary btn-small"
+              onClick={() => {
+                delete document.documentElement.dataset.focus;
+                onBack();
+              }}
+            >
               Back to library
             </button>
           </div>

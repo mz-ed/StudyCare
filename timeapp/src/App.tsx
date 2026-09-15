@@ -23,11 +23,29 @@ const PAGE_META: Record<Page, { label: string; icon: string }> = {
   ai: { label: "AI Chat", icon: "🤖" },
 };
 
+function readSidebarPref(): boolean {
+  try {
+    return localStorage.getItem("studycare-sidebar") === "0";
+  } catch {
+    return false;
+  }
+}
+
 function App() {
   const [page, setPage] = useState<Page>("dashboard");
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const { theme, toggle } = useTheme();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarPref);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "studycare-sidebar",
+        sidebarCollapsed ? "0" : "1",
+      );
+    } catch {}
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     dbInit()
@@ -58,13 +76,24 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell${sidebarCollapsed ? " sidebar-collapsed" : ""}`}
+    >
       <Sidebar current={page} onNavigate={setPage} />
       <main className="content">
         <header className="topbar">
-          <div className="topbar-title">
-            <span className="topbar-icon">{PAGE_META[page].icon}</span>
-            <span>{PAGE_META[page].label}</span>
+          <div className="topbar-left">
+            <button
+              className="topbar-nav-toggle"
+              onClick={() => setSidebarCollapsed((c) => !c)}
+              title={sidebarCollapsed ? "Open sidebar" : "Fold sidebar"}
+            >
+              {sidebarCollapsed ? "«" : "»"}
+            </button>
+            <div className="topbar-title">
+              <span className="topbar-icon">{PAGE_META[page].icon}</span>
+              <span>{PAGE_META[page].label}</span>
+            </div>
           </div>
           <button
             className="theme-toggle topbar-theme"
