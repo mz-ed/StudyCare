@@ -37,8 +37,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tauriScript: pnpm tauri
           projectPath: timeapp
+          tagName: v__VERSION__
+          releaseName: StudyCare v__VERSION__
+          releaseBody: |
+            Windows installer for StudyCare v__VERSION__.
+            Download the .exe (NSIS installer) or .msi (Windows Installer) and run it.
+          releaseDraft: false
+          prerelease: false
+          update: true
 
       - name: Upload Windows installers
         uses: actions/upload-artifact@v4
