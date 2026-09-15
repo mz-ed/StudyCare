@@ -174,6 +174,36 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
     applyScaleImmediate(fitScaleRef.current);
   }
 
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyHandlerRef.current = (e: KeyboardEvent) => {
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && (e.key === "+" || e.key === "=")) {
+      e.preventDefault();
+      zoomBy(15);
+    } else if (mod && (e.key === "-" || e.key === "_")) {
+      e.preventDefault();
+      zoomBy(-15);
+    } else if (mod && e.key === "0") {
+      e.preventDefault();
+      zoomToFit();
+    } else if (mod && e.key === "1") {
+      e.preventDefault();
+      applyScaleImmediate(1);
+    } else if (!mod && (e.key === "+" || e.key === "=")) {
+      zoomBy(15);
+    } else if (!mod && (e.key === "-" || e.key === "_")) {
+      zoomBy(-15);
+    }
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => keyHandlerRef.current(e);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const flushNote = useCallback(async () => {
     if (noteText === null || !noteDirtyRef.current) return;
     try {
