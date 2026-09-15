@@ -57,6 +57,7 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
     const container = containerRef.current;
     if (!doc || !container) return;
     setRendering(true);
+    container.replaceChildren();
     try {
       for (let i = 1; i <= doc.numPages; i++) {
         const page = await doc.getPage(i);
