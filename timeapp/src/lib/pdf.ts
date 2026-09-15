@@ -1,4 +1,11 @@
-import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy, type PDFPageProxy } from "pdfjs-dist";
+import {
+  getDocument,
+  GlobalWorkerOptions,
+  TextLayer,
+  type PDFDocumentProxy,
+  type PDFPageProxy,
+  type PageViewport,
+} from "pdfjs-dist";
 import PdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?worker";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -33,4 +40,19 @@ export async function renderPageToCanvas(
     viewport,
     transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
   }).promise;
+}
+
+export async function renderPageTextLayer(
+  page: PDFPageProxy,
+  viewport: PageViewport,
+): Promise<HTMLDivElement> {
+  const textLayerDiv = document.createElement("div");
+  textLayerDiv.className = "textLayer";
+  const textLayer = new TextLayer({
+    textContentSource: page.streamTextContent(),
+    container: textLayerDiv,
+    viewport,
+  });
+  await textLayer.render();
+  return textLayerDiv;
 }

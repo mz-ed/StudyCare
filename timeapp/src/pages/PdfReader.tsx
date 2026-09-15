@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { fetchPdfNote, updatePdfMeta, upsertPdfNote } from "../lib/api";
-import { loadPdf, readPdf, renderPageToCanvas } from "../lib/pdf";
+import { loadPdf, readPdf, renderPageTextLayer, renderPageToCanvas } from "../lib/pdf";
 import type { Pdf } from "../lib/types";
 
 interface PdfReaderProps {
@@ -61,8 +61,14 @@ export function PdfReader({ pdf, onBack }: PdfReaderProps) {
     try {
       for (let i = 1; i <= doc.numPages; i++) {
         const page = await doc.getPage(i);
+        const wrapper = document.createElement("div");
+        wrapper.className = "pdf-page";
+        wrapper.dataset.page = String(i);
         const canvas = document.createElement("canvas");
-        container.appendChild(canvas);
+        const viewport = page.getViewport({ scale });
+        wrapper.appendChild(canvas);
+        wrapper.appendChild(await renderPageTextLayer(page, viewport));
+        container.appendChild(wrapper);
         await renderPageToCanvas(page, canvas, scale);
       }
     } finally {

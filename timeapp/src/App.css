@@ -1592,6 +1592,34 @@ label {
   border-radius: 2px;
 }
 
+.pdf-page {
+  position: relative;
+  line-height: 0;
+}
+
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  text-align: initial;
+  transform-origin: 0 0;
+  z-index: 2;
+}
+
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.textLayer span::selection,
+.textLayer br::selection {
+  background: rgba(0, 0, 255, 0.25);
+}
+
 .pdf-overlay {
   position: absolute;
   inset: 0;
